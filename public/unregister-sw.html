@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Unregister Service Worker</title>
+</head>
+<body>
+  <h1>Service Worker Unregistration</h1>
+  <button onclick="unregisterSW()">Unregister Service Worker</button>
+  <div id="status"></div>
+  
+  <script>
+    async function unregisterSW() {
+      const statusDiv = document.getElementById('status');
+      
+      if ('serviceWorker' in navigator) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          
+          if (registrations.length === 0) {
+            statusDiv.innerHTML = '<p style="color: green;">No service workers found.</p>';
+            return;
+          }
+          
+          for (let registration of registrations) {
+            const result = await registration.unregister();
+            if (result) {
+              statusDiv.innerHTML += `<p style="color: green;">Service worker unregistered successfully!</p>`;
+            } else {
+              statusDiv.innerHTML += `<p style="color: orange;">Service worker unregistration returned false.</p>`;
+            }
+          }
+          
+          // Clear cache
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+            statusDiv.innerHTML += `<p style="color: green;">Cache cleared!</p>`;
+          }
+          
+          statusDiv.innerHTML += '<p style="color: green;">Done! Refresh the page.</p>';
+          
+        } catch (error) {
+          statusDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+      } else {
+        statusDiv.innerHTML = '<p>Service workers not supported.</p>';
+      }
+    }
+    
+    // Auto-run on page load
+    window.addEventListener('load', unregisterSW);
+  </script>
+</body>
+</html>
+
